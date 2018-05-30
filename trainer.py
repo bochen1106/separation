@@ -82,34 +82,36 @@ class Timer:
 
 class Trainer(object):
     
-    def __init__(self, config=None, logger=None, instr_mix=None):
+    def __init__(self, config=None, logger=None):
         
         self.config = config
         self.logger = logger
-        
+
+        self.config_idx = config_idx = config.get("config_idx")
+        path_set = "../data/set_" + config_idx
+        path_feat = os.path.join(path_set, "feat")
+        self.path_model = "../model/model_" + config_idx
+        if not os.path.exists(self.path_model):
+            os.makedirs(self.path_model)
+
         self.batch_size_train = config.get("batch_size_train")
         self.dim_feat = config.get("dim_feat")
         self.batch_size_eval = config.get("batch_size_eval")
         self.num_epoch = config.get("num_epoch")
         self.num_patience = config.get("num_patience")
-        path_feat = config.get("path_feat")
-        
-        self.path_model = config.get("path_model")
-        if not os.path.exists(self.path_model):
-            os.makedirs(self.path_model)
-            
-        file_data = os.path.join(path_feat, "train", instr_mix) + ".h5"
-        file_info = os.path.join(path_feat, "train", instr_mix) + ".cpickle"
+
+        file_data = os.path.join(path_feat, "train") + ".h5"
+        file_info = os.path.join(path_feat, "train") + ".cpickle"
         logger.log("Reading the train data")
         self.data_train = Reader(file_data=file_data, file_info=file_info, config=config)
-        
-        file_data = os.path.join(path_feat, "valid", instr_mix) + ".h5"
-        file_info = os.path.join(path_feat, "valid", instr_mix) + ".cpickle"
+
+        file_data = os.path.join(path_feat, "valid") + ".h5"
+        file_info = os.path.join(path_feat, "valid") + ".cpickle"
         logger.log("Reading the valid data")
         self.data_valid = Reader(file_data=file_data, file_info=file_info, config=config)
-        
-        file_data = os.path.join(path_feat, "test", instr_mix) + ".h5"
-        file_info = os.path.join(path_feat, "test", instr_mix) + ".cpickle"
+
+        file_data = os.path.join(path_feat, "test") + ".h5"
+        file_info = os.path.join(path_feat, "test") + ".cpickle"
         logger.log("Reading the test data")
         self.data_test = Reader(file_data=file_data, file_info=file_info, config=config)
         
@@ -288,12 +290,15 @@ from util.logger import Logger
 if __name__ == '__main__':
     
     
-    config = Config("../config.json")
-    logger = Logger(config)
+    config = Config("../model/config_001.json")
+    config_idx = config.get("config_idx")
+    filename_log = "../model/model_" + config_idx + "/log.txt"
+    logger = Logger(filename_log)
     config.set_logger(logger)
-    
+
     t = Trainer(config, logger)
-    
+    print "if not close my_reader, the program keeps waiting here ..."
+
     
     
     

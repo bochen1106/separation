@@ -26,13 +26,13 @@ class DataPrepVid(object):
         logger.log("##########################################")
         logger.log("Initilize the data preparer")
         logger.log("##########################################")
-        
         self.config = config
         self.logger = logger
         
         self.path_dataset_pose = config.get("path_dataset_pose")
-        self.path_audio = config.get("path_audio")
-        self.path_pose = config.get("path_pose")
+        self.path_audio_single = config.get("path_audio_single")
+        self.path_pose_single = config.get("path_pose_single")
+
         self.list_piece = config.get("list_piece")
         self.idx_tracks = config.get("idx_tracks")
         self.files_track = config.get("files_track")
@@ -72,18 +72,18 @@ class DataPrepVid(object):
     def get_segment(self, instr_list, data_type):
         
         path_dataset_pose = self.path_dataset_pose
-        path_audio = self.path_audio
-        path_pose = self.path_pose
-        
+        path_audio_single = self.path_audio_single
+        path_pose_single = self.path_pose_single
+
         files_track = self.files_track
         fps = self.fps
         tcen_aud = self.tcen_aud
         
         for instr in instr_list:
-        
-            path_single = os.path.join(path_audio, "single", data_type, instr)
-            filenames = glob.glob(path_single + "/*.wav")
-            path_pose_single = os.path.join(path_pose, "single", data_type, instr)
+
+            path_audio_single = os.path.join(path_audio_single, data_type, instr)
+            filenames = glob.glob(path_audio_single + "/*.wav")
+            path_pose_single = os.path.join(path_pose_single, data_type, instr)
             if not os.path.exists(path_pose_single):
                 os.makedirs(path_pose_single)
             #%%
@@ -119,14 +119,12 @@ class DataPrepVid(object):
                 
     def get_pose_visualization(self, instr_list, data_type):
         
-        path_audio = self.path_audio
-        path_pose = self.path_pose
-        
+
         
         instr = instr_list[0]
         
-        path_audio_single = os.path.join(path_audio, "single", data_type, instr)
-        path_pose_single = os.path.join(path_pose, "single", data_type, instr)
+        path_audio_single = os.path.join(self.path_audio_single, data_type, instr)
+        path_pose_single = os.path.join(self.path_pose_single, data_type, instr)
         path_pose_visualization = path_pose_single.replace("pose", "pose_visualization")
         if not os.path.exists(path_pose_visualization):
             os.makedirs(path_pose_visualization)
@@ -152,16 +150,24 @@ class DataPrepVid(object):
 #%%
         
 if __name__ == '__main__':
-        
+
     from util.config import Config
     from util.logger import Logger
-    config = Config("../config.json")
-    logger = Logger(config)
+
+    config = Config("../model/config_001.json")
+    config_idx = config.get("config_idx")
+    path_set = "../data/set_" + config_idx
+
+    path_pose_single = config.get("path_pose_single")
+    log_filename = os.path.join(path_pose_single, "log.txt")
+    logger = Logger(log_filename)
            
     d = DataPrepVid(config, logger)
 #    d.split_player()
-#    d.get_segment(["vn"], "train")
-    d.get_pose_visualization(["vn"], "train")
+    d.get_segment(["vn"], "train")
+    d.get_segment(["vn"], "valid")
+    d.get_segment(["vn"], "test")
+    # d.get_pose_visualization(["vn"], "train")
     #%%
 #    pose = d.pose
 

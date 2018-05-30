@@ -12,18 +12,19 @@ import datetime
 
 
 class Logger(object):
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, log_filename):
+        # self.config = config
         self.file = None
 
-        log_filename = config.get('log', None)
+        # log_filename = config.get('log', None)
         if log_filename is not None:
             log_dir = os.path.split(log_filename)[0]
             if not os.path.isdir(log_dir):
                 os.makedirs(log_dir)
             self.file = open(log_filename, 'wt')
 
-        self.verbose_level = config.get('verbose_level', 0)
+        # self.verbose_level = config.get('verbose_level', 0)
+        self.verbose_level = 2
 
     def log(self, contents, level=1):
         # print level below verbose level

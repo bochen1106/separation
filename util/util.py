@@ -57,7 +57,8 @@ def extract_feat(config, y_mix, y1, y2):
     """
     Y = np.array([(log_stft1 >= log_stft2), (log_stft1 < log_stft2)]).astype(np.int)
     Y = log_stft_mix_active[None, ...] * Y
-    
+
+    Y = Y > 0
     return log_stft_mix, Y, phase_mix
 
 #%%

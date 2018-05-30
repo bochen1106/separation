@@ -14,6 +14,8 @@ import random
 import h5py
 import cPickle as pickle
 import util
+import re
+
 
 class DataPrep(object):
     
@@ -28,8 +30,11 @@ class DataPrep(object):
         self.fs = config.get("fs")
         self.path_dataset = config.get("path_dataset")
         self.files_track = config.get("files_track", log=False)
-        self.path_audio = config.get("path_audio")
-        self.path_feat = config.get("path_feat")
+        self.path_audio_single = config.get("path_audio_single")
+        self.path_set = "../data/set_" + config_idx
+        self.path_audio = os.path.join( self.path_set, "audio" )
+        self.path_feat = os.path.join( self.path_set, "feat" )
+
         
         
 
@@ -89,9 +94,9 @@ class DataPrep(object):
                        (str(idx_train),str(idx_valid),str(idx_test)) )
 
             data_type = "train"
-            path_single = os.path.join(self.path_audio, "single", data_type, instr)
-            if not os.path.exists(path_single):
-                os.makedirs(path_single)
+            path_audio_single = os.path.join(self.path_audio_single, data_type, instr)
+            if not os.path.exists(path_audio_single):
+                os.makedirs(path_audio_single)
             count = 0
             for j in idx_train:
                 filename = os.path.join( path_dataset, files_track[ idx_instr[j]-1 ] )
@@ -106,14 +111,14 @@ class DataPrep(object):
                         continue
                     count += 1
                     name = instr + "%04d"%count + "@trk%04d"%idx_instr[j] + "&dur%04d-%04d"%(t_seg[0], t_seg[1])
-                    filename_out = os.path.join(path_single, name) + ".wav"
+                    filename_out = os.path.join(path_audio_single, name) + ".wav"
                     librosa.output.write_wav(filename_out, data, fs)
             logger.log("finished generating %d samples for train set" % count)
             
             data_type = "valid"
-            path_single = os.path.join(self.path_audio, "single", data_type, instr)
-            if not os.path.exists(path_single):
-                os.makedirs(path_single)
+            path_audio_single = os.path.join(self.path_audio_single, data_type, instr)
+            if not os.path.exists(path_audio_single):
+                os.makedirs(path_audio_single)
             count = 0
             for j in idx_valid:
                 filename = os.path.join( path_dataset, files_track[ idx_instr[j]-1 ] )
@@ -128,14 +133,14 @@ class DataPrep(object):
                         continue
                     count += 1
                     name = instr + "%04d"%count + "@trk%04d"%idx_instr[j] + "&dur%04d-%04d"%(t_seg[0], t_seg[1])
-                    filename_out = os.path.join(path_single, name) + ".wav"
+                    filename_out = os.path.join(path_audio_single, name) + ".wav"
                     librosa.output.write_wav(filename_out, data, fs)
             logger.log("finished generating %d samples for valid set" % count)
             
             data_type = "test"
-            path_single = os.path.join(self.path_audio, "single", data_type, instr)
-            if not os.path.exists(path_single):
-                os.makedirs(path_single)
+            path_audio_single = os.path.join(self.path_audio_single, data_type, instr)
+            if not os.path.exists(path_audio_single):
+                os.makedirs(path_audio_single)
             count = 0
             for j in idx_test:
                 filename = os.path.join( path_dataset, files_track[ idx_instr[j]-1 ] )
@@ -150,7 +155,7 @@ class DataPrep(object):
                         continue
                     count += 1
                     name = instr + "%04d"%count + "@trk%04d"%idx_instr[j] + "&dur%04d-%04d"%(t_seg[0], t_seg[1])
-                    filename_out = os.path.join(path_single, name) + ".wav"
+                    filename_out = os.path.join(path_audio_single, name) + ".wav"
                     librosa.output.write_wav(filename_out, data, fs)
             logger.log("finished generating %d samples for test set" % count)
            
@@ -181,14 +186,13 @@ class DataPrep(object):
         
         instr_mix = self.instr_mix
         [instr1, instr2] = instr_mix.split("-")
-        
-        path_mix = os.path.join(self.path_audio, "mix", data_type, instr_mix)
-        if not os.path.exists(path_mix):
-            os.makedirs(path_mix)
-        path_single_1 = os.path.join(self.path_audio, "single", data_type, instr1)
-        path_single_2 = os.path.join(self.path_audio, "single", data_type, instr2)
-        filenames_1 = glob.glob(path_single_1 + "/*.wav")
-        filenames_2 = glob.glob(path_single_2 + "/*.wav")
+        path_audio = os.path.join(self.path_audio, data_type)
+        if not os.path.exists(path_audio):
+            os.makedirs(path_audio)
+        path_audio_single_1 = os.path.join(self.path_audio_single, data_type, instr1)
+        path_audio_single_2 = os.path.join(self.path_audio_single, data_type, instr2)
+        filenames_1 = glob.glob(path_audio_single_1 + "/*.wav")
+        filenames_2 = glob.glob(path_audio_single_2 + "/*.wav")
         n_sample_1 = len(filenames_1)
         n_sample_2 = len(filenames_2)
         logger.log("mix [%s] (%d samples) and [%s] (%d samples)" % 
@@ -217,7 +221,7 @@ class DataPrep(object):
             m1 = re.match(expr, os.path.basename(filename1))
             m2 = re.match(expr, os.path.basename(filename2))
             name_out = instr1+m1.group(2) + "-" + instr2+m2.group(2)
-            filename_out = os.path.join(path_mix, name_out) + ".wav"
+            filename_out = os.path.join(path_audio, name_out) + ".wav"
             
             wav1, fs = librosa.load(filename1, sr=self.fs)
             wav2, fs = librosa.load(filename2, sr=self.fs)
@@ -250,21 +254,21 @@ class DataPrep(object):
         instr_mix = self.instr_mix
         [instr1, instr2] = instr_mix.split("-")
 
-        path_single_1 = os.path.join(self.path_audio, "single", data_type, instr1)
-        path_single_2 = os.path.join(self.path_audio, "single", data_type, instr2)
-        path_mix = os.path.join(self.path_audio, "mix", data_type, instr_mix)
-        path_feat = os.path.join(self.path_feat, data_type, instr_mix)
+        path_audio_single_1 = os.path.join(self.path_audio_single, data_type, instr1)
+        path_audio_single_2 = os.path.join(self.path_audio_single, data_type, instr2)
+        path_audio = os.path.join(self.path_audio, data_type)
+        path_feat = os.path.join(self.path_feat, data_type)
 
         if not os.path.exists(path_feat):
             os.makedirs(path_feat)
         
-        filenames = glob.glob(path_mix + "/*.wav")
+        filenames = glob.glob(path_audio + "/*.wav")
         
         for filename in filenames:
             name = os.path.basename(filename).split(".")[0]
             name1, name2 = name.split("-")
-            filename1 = glob.glob(os.path.join(path_single_1, name1) + "*.wav")[0]
-            filename2 = glob.glob(os.path.join(path_single_2, name2) + "*.wav")[0]
+            filename1 = glob.glob(os.path.join(path_audio_single_1, name1) + "*.wav")[0]
+            filename2 = glob.glob(os.path.join(path_audio_single_2, name2) + "*.wav")[0]
 
             data_mix, fs = librosa.load(filename, sr=self.fs)
             data1, fs = librosa.load(filename1, sr=self.fs)
@@ -293,14 +297,11 @@ class DataPrep(object):
         logger = self.logger
         logger.log("++++++++++++++++++++++++++++++++++++++++++")
         logger.log("aggregrate h5 files")
-        
-        instr_mix = self.instr_mix
-        [instr1, instr2] = instr_mix.split("-")
-        
-        path_feat = os.path.join(self.path_feat, data_type, instr_mix)
-        path_h5_aggr = os.path.join(self.path_feat, data_type)
-        
-        filenames = glob.glob(path_feat + "/*.h5")\
+
+
+        path_feat = os.path.join(self.path_feat, data_type)
+
+        filenames = glob.glob(path_feat + "/*.h5")
         
         X_total = []
         Y_total = []
@@ -333,7 +334,7 @@ class DataPrep(object):
         global_std = np.std(X_total)
         
         # save the data
-        filename_h5 = os.path.join(path_h5_aggr, instr_mix) + ".h5"
+        filename_h5 = os.path.join(self.path_feat, data_type) + ".h5"
         f = h5py.File(filename_h5)
         f['X'] = X_total
         f['Y'] = Y_total
@@ -343,7 +344,7 @@ class DataPrep(object):
         f['global_std'] = global_std
         f.close()
         
-        filename_info = os.path.join(path_h5_aggr, instr_mix) + ".cpickle"
+        filename_info = filename_h5.replace("h5", "cpickle")
         pickle.dump({'info': info}, open(filename_info, 'w'))
         
     def get_instr_info(self, instr_mix=None):
@@ -366,28 +367,37 @@ if __name__ == '__main__':
         
     from util.config import Config
     from util.logger import Logger
-    config = Config("../config.json")
-    logger = Logger(config)
+    config = Config("../model/config_001.json")
+    config_idx = config.get("config_idx")
+    path_set = "../data/set_" + config_idx
+    if os.path.exists(path_set):
+        import sys
+        raise Exception("set already exists!")
+        sys.exit(0)
+
+    log_filename = os.path.join(path_set, "log_audio.txt")
+
+    logger = Logger(log_filename)
     config.set_logger(logger)            
     d = DataPrep(config, logger)
     
-#    d.get_single(instr_list=["va", "tba"])
+    # d.get_single(instr_list=["vc"])
     
     instr_mix = config.get("instr_mix")
     n_sample_train = config.get("n_sample_train")
     n_sample_valid = config.get("n_sample_valid")
     n_sample_test = config.get("n_sample_test")
-    
+
     d.get_instr_info(instr_mix)
-    
+
     d.get_mix(data_type='train', n_sample=n_sample_train)
     d.get_feat(data_type='train')
     d.get_h5_aggr(data_type='train')
-    
+
     d.get_mix(data_type='valid', n_sample=n_sample_valid)
     d.get_feat(data_type='valid')
     d.get_h5_aggr(data_type='valid')
-    
+
     d.get_mix(data_type='test', n_sample=n_sample_test)
     d.get_feat(data_type='test')
     d.get_h5_aggr(data_type='test')

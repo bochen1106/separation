@@ -14,21 +14,14 @@ set_session(tf.Session(config=config))
 
 from util.config import Config
 from util.logger import Logger
-from data_prep import DataPrep
 from trainer import Trainer
 #%%
 if __name__ == '__main__':
-    
-    config = Config("../config.json")
-    logger = Logger(config)
+    config = Config("../model/config_001.json")
+    config_idx = config.get("config_idx")
+    filename_log = "../model/model_" + config_idx + "/log.txt"
+    logger = Logger(filename_log)
     config.set_logger(logger)
-    #%%
-#    d = DataPrep(config, logger)
-#    #d.get_single(instr_list=["va", "tba"])
-#    d.get_instr_info(["ob", "hn"])
-#    d.get_mix(data_type='train', n_sample=10)
-#    d.get_feat(data_type='train')
-#    d.get_h5_aggr(data_type='train')
 
-#%%
-    t = Trainer(config, logger, "ob-hn")
+    t = Trainer(config, logger)
+    t.run()

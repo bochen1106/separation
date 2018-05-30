@@ -167,9 +167,9 @@ class Reader(threading.Thread):
 if __name__ == '__main__':
     """ Test the speed of reader
     """
-    config = Config("../config.json")
-    file_data = "../data/h5/train/vn-cl.h5"
-    file_info = "../data/h5/train/vn-cl.cpickle"
+    config = Config("../model/config_001.json")
+    file_data = "../data/set_001/feat/train.h5"
+    file_info = "../data/set_001/feat/train.cpickle"
     data_reader = Reader(file_data, file_info, config)
     #%%
     for i in range(5):
